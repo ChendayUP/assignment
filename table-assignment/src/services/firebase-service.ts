@@ -8,68 +8,85 @@ import {
   deleteDoc,
 } from "firebase/firestore"
 import { db } from "../constants/firebase-config"
-import { User } from "../interfaces/user-interface"
+import { User, CreateUser, UpdateUser } from "../interfaces/user-interface"
+import { toast } from "react-toastify"
 
 export const usersQuery = query(collection(db, "users"))
 
-export function fetchUser(callback: (users: User[]) => void) {
+export function fetchUser(
+  setUsers: React.Dispatch<React.SetStateAction<User[]>>
+) {
   try {
     onSnapshot(usersQuery, (snapshot) => {
-      const users = snapshot.docs.map((doc) => {
-        return {
-          id: doc.id,
-          ...doc.data(),
-        } as User
-      })
-      callback(users)
+      setUsers(
+        snapshot.docs.map((doc) => {
+          return {
+            id: doc.id,
+            ...doc.data(),
+          } as User
+        })
+      )
     })
   } catch (error) {
     console.log(error)
   }
 }
 
-export async function addUser(
-  { id, name, lastName }: User,
-  callback?: () => void
-) {
-  // try {
-  //   await setDoc(doc(db, "users", id), {
-  //     name,
-  //     lastName,
-  //   })
-  //   callback()
-  // } catch (error) {
-  //   console.log(error)
-  // }
-  return setDoc(doc(db, "users", id), {
-    name,
-    lastName,
-  })
+export async function createUser(args: CreateUser) {
+  const { id, name, lastName, users, resetFormFields} = args
+  const idRegexCheck = /^\d+$/
+  if (!id || !name || !lastName) {
+    return toast.error('all fields required')
+  }
+
+  if (!idRegexCheck.test(id)) {
+    return toast.error("wrong id format")
+  }
+
+  const isUserExists = users.some(user => user.id === id)
+  if (isUserExists) {
+    toast.info('user already exist')
+    return 
+  }
+
+  try {
+    await setDoc(doc(db, "users", id), {
+      name,
+      lastName,
+    })
+
+    resetFormFields()
+    toast.success('user created succfully')
+  } catch (error) {
+    console.log(error)
+  }
 }
 
-export async function updateUser(
-  { id, name, lastName }: User,
-  callback: () => void
-) {
+export async function updateUser(args: UpdateUser) {
+  const { id, name, lastName, setShowModal } = args
   try {
     await updateDoc(doc(db, "users", id), {
       name,
       lastName,
     })
-    callback()
+    setShowModal(false)
+    toast.success("edit success")
   } catch (error) {
+    toast.success("edit fail")
     console.log(error)
   }
 }
 
-export async function deleteUser(
-  id: string,
-  callback: () => void
-) {
+export async function deleteUser(id: string) {
+  const isConfirmed = window.confirm('is delete')
+
+  if (!isConfirmed) return
+
   try {
     await deleteDoc(doc(db, "users", id))
-    callback()
+    toast.success('delete success')
   } catch (error) {
     console.log(error)
+    toast.success('delete success error')
   }
 }

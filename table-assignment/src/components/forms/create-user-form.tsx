@@ -1,47 +1,46 @@
-import { useState } from "react"
+import { useState, FormEvent } from "react"
 import styled from "styled-components"
 import { User } from "../../interfaces/user-interface"
 import FormInput from "./forms-input"
-import { toast } from "react-toastify"
-import { addUser } from "../../services/firebase-service"
+import { createUser } from "../../services/firebase-service"
 
-export default function CreateUserform() {
+export default function CreateUserform({ users }: { users: User[] }) {
   const [id, setId] = useState("")
   const [name, setName] = useState("")
   const [lastName, setLastName] = useState("")
-  const [buttonTitle, setButtonTitle] = useState("create user")
-  const [disabled, setDisabled] = useState(false)
 
-  const createUser = async () => {
-    if (!id || !name || !lastName) {
-      toast.warn("Please fill all the fields")
-      return
-    }
-    setButtonTitle("upload...")
-    setDisabled(true)
-
-    await addUser({ id, name, lastName })
-    toast.success("create user success")
-
-    setButtonTitle("create user")
-    setDisabled(false)
+  const resetFormFields = () => {
+    setId("")
+    setName("")
+    setLastName("")
   }
-  
+
+  const onFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    createUser({ id, name, lastName, users, resetFormFields })
+  }
+
   return (
-    <Container>
-      <FormInput label="Id" placeholder="Your id" onChange={setId} />
-      <FormInput label="Name" placeholder="Your Name" onChange={setName} />
+    <Form onSubmit={onFormSubmit}>
+      <FormInput label="Id" value={id} placeholder="Your id" onChange={setId} />
+      <FormInput
+        label="Name"
+        value={name}
+        placeholder="Your Name"
+        onChange={setName}
+      />
       <FormInput
         label="Last Name"
+        value={lastName}
         placeholder="Your Last Name"
         onChange={setLastName}
       />
-        <Button onClick={createUser} disabled={disabled}>{buttonTitle}</Button>
-    </Container>
+      <Button type="submit">create user</Button>
+    </Form>
   )
 }
 
-const Container = styled.div`
+const Form = styled.form`
   margin-top: 20px;
   width: 100%;
   display: flex;

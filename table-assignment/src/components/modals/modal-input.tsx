@@ -1,26 +1,22 @@
-import React from 'react'
 import styled from 'styled-components'
 
 
-interface FormInputProps {
-  label: string
-  value: string
-  placeholder: string 
+interface ModelInputProps {
+  value: string,
+  label: string,
   onChange: (value: string) => void
 }
 
-
-export default function FormInput({label, placeholder, onChange, value}: FormInputProps) {
+export default function ModelInput({value, label, onChange}: ModelInputProps) {
   return (
     <Container>
       <Label>{label}</Label>
-      <Input value={value} placeholder={placeholder} onChange={e => onChange(e.target.value)}/>
+      <Input value={value} onChange={e => onChange(e.target.value)}/>
     </Container>
   )
 }
 
 const Container = styled.div`
-  margin: 0 10px;
 `
 
 const Label = styled.div`
